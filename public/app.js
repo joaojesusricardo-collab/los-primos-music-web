@@ -1,25 +1,30 @@
-// Los Primos Music - Web Engine com YouTube Audio Integrado
+// Los Primos Music - Web Engine com Responsividade e Abas Nativas
 let ytPlayer = null;
 let isYtReady = false;
 let currentSong = null;
 let queue = [];
 let currentIndex = -1;
 let isPlaying = false;
+let isShuffle = false;
+let isRepeat = false;
 let lyricsData = [];
 let progressTimer = null;
 
-// Elementos DOM
+// Elementos DOM de Abas
+const navItems = document.querySelectorAll('.nav-item');
+const tabContents = document.querySelectorAll('.tab-content');
+
+// Elementos de Conteúdo
+const homeSongList = document.getElementById('homeSongList');
+const searchResultsList = document.getElementById('searchResultsList');
+const queueList = document.getElementById('queueList');
+const queueCount = document.getElementById('queueCount');
 const searchInput = document.getElementById('searchInput');
-const searchResults = document.getElementById('searchResults');
-const quickCategories = document.getElementById('quickCategories');
-const miniPlayer = document.getElementById('miniPlayer');
-const fullPlayer = document.getElementById('fullPlayer');
-const closeFullPlayerBtn = document.getElementById('closeFullPlayerBtn');
-const toggleLyricsBtn = document.getElementById('toggleLyricsBtn');
-const normalCoverContainer = document.getElementById('normalCoverContainer');
-const lyricsContainer = document.getElementById('lyricsContainer');
+const clearSearchBtn = document.getElementById('clearSearchBtn');
 
 // MiniPlayer DOM
+const miniPlayer = document.getElementById('miniPlayer');
+const miniProgressLine = document.getElementById('miniProgressLine');
 const miniThumb = document.getElementById('miniThumb');
 const miniTitle = document.getElementById('miniTitle');
 const miniArtist = document.getElementById('miniArtist');
@@ -27,12 +32,19 @@ const miniPlayBtn = document.getElementById('miniPlayBtn');
 const miniNextBtn = document.getElementById('miniNextBtn');
 
 // FullPlayer DOM
+const fullPlayer = document.getElementById('fullPlayer');
+const closeFullPlayerBtn = document.getElementById('closeFullPlayerBtn');
+const toggleLyricsBtn = document.getElementById('toggleLyricsBtn');
+const normalCoverContainer = document.getElementById('normalCoverContainer');
+const lyricsContainer = document.getElementById('lyricsContainer');
 const fullCover = document.getElementById('fullCover');
 const fullTitle = document.getElementById('fullTitle');
 const fullArtist = document.getElementById('fullArtist');
 const fullPlayBtn = document.getElementById('fullPlayBtn');
 const fullPrevBtn = document.getElementById('fullPrevBtn');
 const fullNextBtn = document.getElementById('fullNextBtn');
+const shuffleBtn = document.getElementById('shuffleBtn');
+const repeatBtn = document.getElementById('repeatBtn');
 const progressSlider = document.getElementById('progressSlider');
 const currentTimeLabel = document.getElementById('currentTimeLabel');
 const totalTimeLabel = document.getElementById('totalTimeLabel');
@@ -63,7 +75,12 @@ window.onYouTubeIframeAPIReady = function() {
         } else if (event.data === YT.PlayerState.ENDED) {
           setPlayingState(false);
           stopProgressTracking();
-          playNext();
+          if (isRepeat) {
+            ytPlayer.seekTo(0);
+            ytPlayer.playVideo();
+          } else {
+            playNext();
+          }
         }
       }
     }
@@ -72,26 +89,52 @@ window.onYouTubeIframeAPIReady = function() {
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
+  setupNavigation();
   setupEventListeners();
-  loadTrending('Top Brasil 2026');
+  loadHomeHighlights();
 });
+
+// Navegação por Abas
+function setupNavigation() {
+  navItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const targetTabId = item.dataset.tab;
+
+      navItems.forEach(nav => nav.classList.remove('active'));
+      tabContents.forEach(tab => tab.classList.remove('active'));
+
+      item.classList.add('active');
+      const targetTab = document.getElementById(targetTabId);
+      if (targetTab) targetTab.classList.add('active');
+
+      if (targetTabId === 'tabSearch') {
+        setTimeout(() => searchInput.focus(), 150);
+      }
+    });
+  });
+}
+
+function switchTab(tabId) {
+  const navItem = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
+  if (navItem) navItem.click();
+}
 
 function setupEventListeners() {
   // Busca
+  searchInput.addEventListener('input', () => {
+    clearSearchBtn.style.display = searchInput.value ? 'block' : 'none';
+  });
+
   searchInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       performSearch(searchInput.value);
     }
   });
 
-  // Categorias Rápidas
-  quickCategories.addEventListener('click', (e) => {
-    const chip = e.target.closest('.chip');
-    if (chip) {
-      const q = chip.dataset.query;
-      searchInput.value = q;
-      performSearch(q);
-    }
+  clearSearchBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    clearSearchBtn.style.display = 'none';
+    searchInput.focus();
   });
 
   // MiniPlayer
@@ -115,6 +158,16 @@ function setupEventListeners() {
   fullPrevBtn.addEventListener('click', playPrev);
   fullNextBtn.addEventListener('click', playNext);
 
+  // Shuffle & Repeat
+  shuffleBtn.addEventListener('click', () => {
+    isShuffle = !isShuffle;
+    shuffleBtn.classList.toggle('active', isShuffle);
+  });
+  repeatBtn.addEventListener('click', () => {
+    isRepeat = !isRepeat;
+    repeatBtn.classList.toggle('active', isRepeat);
+  });
+
   // Slider de Progresso
   progressSlider.addEventListener('input', () => {
     if (ytPlayer && ytPlayer.seekTo) {
@@ -125,6 +178,7 @@ function setupEventListeners() {
   // Alternar Letras
   toggleLyricsBtn.addEventListener('click', () => {
     const isShowing = lyricsContainer.classList.toggle('active');
+    toggleLyricsBtn.classList.toggle('active', isShowing);
     normalCoverContainer.style.display = isShowing ? 'none' : 'flex';
   });
 
@@ -134,53 +188,70 @@ function setupEventListeners() {
   }
 }
 
+// Carregar Destaques da Home
+async function loadHomeHighlights() {
+  homeSongList.innerHTML = '<div style="text-align:center; padding: 30px;"><div class="spinner"></div></div>';
+  try {
+    const res = await fetch('/api/search?q=Top Brasil 2026');
+    const songs = await res.json();
+    renderSongList(homeSongList, songs);
+  } catch (err) {
+    homeSongList.innerHTML = '<p style="text-align:center; color:var(--lp-wine);">Erro ao carregar músicas.</p>';
+  }
+}
+
+// Categoria Rápida
+window.quickPlayCategory = async function(categoryName) {
+  switchTab('tabSearch');
+  searchInput.value = categoryName;
+  clearSearchBtn.style.display = 'block';
+  await performSearch(categoryName);
+};
+
 // Busca de Músicas
 async function performSearch(query) {
   if (!query || !query.trim()) return;
-  searchResults.innerHTML = '<div style="text-align:center; padding: 40px;"><div class="spinner"></div></div>';
+  searchResultsList.innerHTML = '<div style="text-align:center; padding: 40px;"><div class="spinner"></div></div>';
 
   try {
     const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
     const songs = await res.json();
-    renderSongs(songs);
+    renderSongList(searchResultsList, songs);
   } catch (err) {
-    searchResults.innerHTML = '<p style="text-align:center; color:var(--lp-wine);">Erro ao buscar músicas.</p>';
+    searchResultsList.innerHTML = '<p style="text-align:center; color:var(--lp-wine);">Erro ao buscar músicas.</p>';
   }
 }
 
-async function loadTrending(query) {
-  try {
-    const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-    const songs = await res.json();
-    renderSongs(songs);
-  } catch (err) {}
-}
-
-function renderSongs(songs) {
+function renderSongList(container, songs) {
   if (!songs || songs.length === 0) {
-    searchResults.innerHTML = '<p style="text-align:center; color:var(--lp-text-secondary); padding:20px;">Nenhuma música encontrada.</p>';
+    container.innerHTML = '<div class="empty-state"><p>Nenhuma música encontrada.</p></div>';
     return;
   }
 
-  queue = songs;
-  searchResults.innerHTML = songs.map((song, idx) => `
-    <div class="song-card ${currentSong && currentSong.id === song.id ? 'active' : ''}" onclick="selectSong(${idx})">
+  container.innerHTML = songs.map((song, idx) => `
+    <div class="song-card ${currentSong && currentSong.id === song.id ? 'active' : ''}" onclick="selectSongFromList(${JSON.stringify(songs).replace(/"/g, '&quot;')}, ${idx})">
       <img class="song-thumb" src="${song.thumbnail || '/assets/los_primos_logo.png'}" alt="" loading="lazy">
       <div class="song-info">
         <div class="song-title">${escapeHtml(song.title)}</div>
         <div class="song-artist">${escapeHtml(song.artists)}</div>
       </div>
-      <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" style="color:var(--lp-gold)">
+      <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24" style="color:var(--lp-gold)">
         <path d="M8 5v14l11-7z"/>
       </svg>
     </div>
   `).join('');
 }
 
-// Reprodução Principal
-window.selectSong = async function(index) {
+// Reprodução a partir de qualquer lista
+window.selectSongFromList = function(songs, index) {
+  queue = songs;
   currentIndex = index;
-  const song = queue[index];
+  updateQueueUI();
+  playCurrentSong();
+};
+
+function playCurrentSong() {
+  const song = queue[currentIndex];
   if (!song) return;
 
   currentSong = song;
@@ -196,10 +267,39 @@ window.selectSong = async function(index) {
 
   setupMediaSession(song);
   loadLyrics(song);
+}
+
+function updateQueueUI() {
+  queueCount.textContent = queue.length;
+  if (!queue.length) {
+    queueList.innerHTML = '<div class="empty-state"><p>Nenhuma música na fila.</p></div>';
+    return;
+  }
+
+  queueList.innerHTML = queue.map((song, idx) => `
+    <div class="song-card ${currentIndex === idx ? 'active' : ''}" onclick="selectQueueIndex(${idx})">
+      <img class="song-thumb" src="${song.thumbnail || '/assets/los_primos_logo.png'}" alt="" loading="lazy">
+      <div class="song-info">
+        <div class="song-title">${escapeHtml(song.title)}</div>
+        <div class="song-artist">${escapeHtml(song.artists)}</div>
+      </div>
+      ${currentIndex === idx ? `
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" style="color:var(--lp-gold)">
+          <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+        </svg>
+      ` : ''}
+    </div>
+  `).join('');
+}
+
+window.selectQueueIndex = function(index) {
+  currentIndex = index;
+  playCurrentSong();
+  updateQueueUI();
 };
 
 function updateUIForSong(song) {
-  miniPlayer.style.display = 'flex';
+  miniPlayer.style.display = 'block';
   miniThumb.src = song.thumbnail || '/assets/los_primos_logo.png';
   miniTitle.textContent = song.title;
   miniArtist.textContent = song.artists;
@@ -208,8 +308,14 @@ function updateUIForSong(song) {
   fullTitle.textContent = song.title;
   fullArtist.textContent = song.artists;
 
-  document.querySelectorAll('.song-card').forEach((card, idx) => {
-    card.classList.toggle('active', idx === currentIndex);
+  // Atualizar seleção visual em todas as listas abertas
+  document.querySelectorAll('.song-card').forEach(card => {
+    const titleEl = card.querySelector('.song-title');
+    if (titleEl && titleEl.textContent === song.title) {
+      card.classList.add('active');
+    } else {
+      card.classList.remove('active');
+    }
   });
 }
 
@@ -224,18 +330,24 @@ function togglePlay() {
 }
 
 function playNext() {
-  if (currentIndex + 1 < queue.length) {
-    selectSong(currentIndex + 1);
+  if (isShuffle && queue.length > 1) {
+    currentIndex = Math.floor(Math.random() * queue.length);
+  } else if (currentIndex + 1 < queue.length) {
+    currentIndex++;
   } else if (queue.length > 0) {
-    selectSong(0);
+    currentIndex = 0;
   }
+  playCurrentSong();
+  updateQueueUI();
 }
 
 function playPrev() {
   if (ytPlayer && ytPlayer.getCurrentTime && ytPlayer.getCurrentTime() > 3) {
     ytPlayer.seekTo(0, true);
   } else if (currentIndex > 0) {
-    selectSong(currentIndex - 1);
+    currentIndex--;
+    playCurrentSong();
+    updateQueueUI();
   }
 }
 
@@ -265,9 +377,12 @@ function startProgressTracking() {
       currentTimeLabel.textContent = formatTime(cur);
       totalTimeLabel.textContent = formatTime(dur);
 
+      const percent = (cur / dur) * 100;
+      miniProgressLine.style.width = `${percent}%`;
+
       syncLyrics(cur * 1000);
     }
-  }, 500);
+  }, 400);
 }
 
 function stopProgressTracking() {
@@ -290,7 +405,7 @@ async function loadLyrics(song) {
       lyricsData = parseLRC(data.syncedLyrics);
       renderLyrics(lyricsData);
     } else if (data.found && data.plainLyrics) {
-      lyricsContainer.innerHTML = `<div style="white-space: pre-wrap; line-height: 1.8; color: var(--lp-text-primary);">${escapeHtml(data.plainLyrics)}</div>`;
+      lyricsContainer.innerHTML = `<div style="white-space: pre-wrap; line-height: 1.8; color: var(--lp-text-primary); padding: 20px;">${escapeHtml(data.plainLyrics)}</div>`;
     } else {
       lyricsContainer.innerHTML = '<p style="color:var(--lp-text-secondary); padding:40px;">Letra indisponível para esta música.</p>';
     }
