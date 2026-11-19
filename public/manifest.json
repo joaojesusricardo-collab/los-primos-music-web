@@ -1,0 +1,21 @@
+{
+  "name": "Los Primos Music",
+  "short_name": "Los Primos",
+  "description": "Música sem limites com a identidade oficial Los Primos",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0D0907",
+  "theme_color": "#F2B01E",
+  "icons": [
+    {
+      "src": "/assets/los_primos_logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/los_primos_logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

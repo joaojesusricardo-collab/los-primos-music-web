@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Los Primos Music</title>
+  
+  <!-- PWA & Apple Web App Meta Tags -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#F2B01E">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Los Primos">
+  <link rel="apple-touch-icon" href="/assets/los_primos_logo.png">
+  <link rel="icon" type="image/png" href="/assets/los_primos_logo.png">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Top Header com Logo -->
+  <header class="app-header">
+    <div class="brand-container">
+      <img src="/assets/los_primos_logo.png" alt="Logo Los Primos" class="brand-logo">
+      <div>
+        <h1 class="brand-title">LOS PRIMOS</h1>
+        <p class="brand-subtitle">MÚSICA SEM LIMITES</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Conteúdo Principal -->
+  <main class="main-content">
+    
+    <!-- Barra de Pesquisa -->
+    <section class="search-container">
+      <div class="search-bar">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="searchInput" placeholder="O que você quer ouvir hoje?" autocomplete="off">
+      </div>
+    </section>
+
+    <!-- Banner em Destaque -->
+    <section class="hero-card">
+      <div class="hero-tag">Destaque Exclusivo</div>
+      <h2 class="hero-title">Os Maiores Sucessos</h2>
+      <button class="hero-btn" onclick="performSearch('Top Brasil 2026')">Ouvir Agora</button>
+    </section>
+
+    <!-- Categorias / Gêneros Rápidos -->
+    <section class="category-chips" id="quickCategories">
+      <button class="chip" data-query="Top Brasil">🔥 Em Alta</button>
+      <button class="chip" data-query="Sertanejo 2026">🤠 Sertanejo</button>
+      <button class="chip" data-query="Trap Brasil">⚡ Trap</button>
+      <button class="chip" data-query="Funk 2026">🔊 Funk</button>
+      <button class="chip" data-query="Pagode">🥁 Pagode</button>
+      <button class="chip" data-query="Eletrônica">🎧 Eletrônica</button>
+      <button class="chip" data-query="Gospel">🙏 Gospel</button>
+    </section>
+
+    <!-- Músicas -->
+    <section>
+      <h3 class="section-title">Recomendações</h3>
+      <div class="song-list" id="searchResults">
+        <!-- Linhas injetadas via app.js -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MiniPlayer Flutuante Persistente -->
+  <div class="mini-player" id="miniPlayer" style="display: none;">
+    <img src="/assets/los_primos_logo.png" alt="" class="mini-thumb" id="miniThumb">
+    <div class="mini-info">
+      <div class="mini-title" id="miniTitle">Título da Música</div>
+      <div class="mini-artist" id="miniArtist">Artista</div>
+    </div>
+    <div class="mini-controls">
+      <button class="btn-icon btn-play-mini" id="miniPlayBtn">
+        <svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+      </button>
+      <button class="btn-icon" id="miniNextBtn">
+        <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Player Completo em Tela Cheia -->
+  <div class="full-player" id="fullPlayer">
+    <div class="full-player-header">
+      <button class="btn-icon" id="closeFullPlayerBtn">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M19 9l-7 7-7-7"/>
+        </svg>
+      </button>
+      <span style="font-size:0.85rem; color:var(--lp-text-secondary); text-transform:uppercase; font-weight:600;">Reproduzindo</span>
+      <button class="btn-icon" id="toggleLyricsBtn" title="Letras">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Capa Normal -->
+    <div class="full-cover-container" id="normalCoverContainer">
+      <img src="/assets/los_primos_logo.png" alt="" class="full-cover" id="fullCover">
+    </div>
+
+    <!-- Letras Sincronizadas (Alternável) -->
+    <div class="lyrics-container" id="lyricsContainer">
+      <!-- Letras injetadas pelo app.js -->
+    </div>
+
+    <!-- Metadados -->
+    <div class="full-metadata">
+      <div class="full-title" id="fullTitle">Nome da Música</div>
+      <div class="full-artist" id="fullArtist">Nome do Artista</div>
+    </div>
+
+    <!-- Barra de Progresso -->
+    <div class="progress-bar-container">
+      <input type="range" class="progress-slider" id="progressSlider" min="0" max="100" value="0">
+      <div class="time-row">
+        <span id="currentTimeLabel">0:00</span>
+        <span id="totalTimeLabel">0:00</span>
+      </div>
+    </div>
+
+    <!-- Controles Principais -->
+    <div class="full-controls">
+      <button class="btn-icon" id="fullPrevBtn">
+        <svg width="32" height="32" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+        </svg>
+      </button>
+
+      <button class="btn-play-large" id="fullPlayBtn">
+        <svg width="36" height="36" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+      </button>
+
+      <button class="btn-icon" id="fullNextBtn">
+        <svg width="32" height="32" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Container invisível do Player de Áudio do YouTube -->
+  <div id="ytPlayerContainer" style="position: absolute; top: -9999px; left: -9999px; width: 200px; height: 200px; pointer-events: none; opacity: 0.01;">
+    <div id="ytPlayer"></div>
+  </div>
+
+  <!-- YouTube IFrame API -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
