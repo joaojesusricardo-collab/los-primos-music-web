@@ -26,15 +26,50 @@
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
-body {
+html, body {
   background-color: var(--lp-dark-bg);
   color: var(--lp-text-primary);
   font-family: var(--font-body);
   overflow-x: hidden;
   user-select: none;
-  padding-bottom: 90px;
+  -webkit-user-select: none;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+body {
+  padding-bottom: max(100px, calc(env(safe-area-inset-bottom) + 85px));
+}
+
+/* Dica de Instalação para iOS (oculta se já estiver no modo standalone) */
+.ios-install-banner {
+  display: none;
+  background: linear-gradient(90deg, var(--lp-dark-surface-2) 0%, var(--lp-dark-surface-1) 100%);
+  border-bottom: 1px solid var(--lp-dark-divider);
+  padding: 10px 16px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--lp-text-secondary);
+}
+
+.ios-install-banner.show {
+  display: flex;
+}
+
+.ios-install-banner strong {
+  color: var(--lp-gold);
+}
+
+.ios-install-banner .close-banner {
+  background: none;
+  border: none;
+  color: var(--lp-text-secondary);
+  font-size: 1.1rem;
+  padding: 0 4px;
 }
 
 /* App Header */
@@ -42,13 +77,13 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(13, 9, 7, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(13, 9, 7, 0.90);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: max(14px, env(safe-area-inset-top)) 20px 14px 20px;
   border-bottom: 1px solid var(--lp-dark-divider);
 }
 
@@ -96,7 +131,7 @@ body {
   background: var(--lp-dark-surface-2);
   border: 1px solid var(--lp-dark-divider);
   border-radius: 24px;
-  padding: 10px 16px;
+  padding: 12px 18px;
   transition: all 0.25s ease;
 }
 
@@ -112,7 +147,7 @@ body {
   outline: none;
   color: var(--lp-text-primary);
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: 1rem;
   margin-left: 10px;
 }
 
@@ -152,17 +187,17 @@ body {
   background: var(--lp-gold-light);
   color: var(--lp-dark-bg);
   border: none;
-  padding: 8px 18px;
-  border-radius: 20px;
+  padding: 10px 22px;
+  border-radius: 22px;
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: transform 0.15s ease;
 }
 
 .hero-btn:active {
-  transform: scale(0.96);
+  transform: scale(0.95);
 }
 
 /* Section Title */
@@ -192,18 +227,19 @@ body {
   background: var(--lp-dark-surface-2);
   border: 1px solid var(--lp-dark-divider);
   color: var(--lp-text-primary);
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.85rem;
+  padding: 10px 18px;
+  border-radius: 22px;
+  font-size: 0.9rem;
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.chip:hover, .chip:active {
+.chip:active {
   border-color: var(--lp-gold);
   color: var(--lp-gold-light);
+  transform: scale(0.96);
 }
 
 /* Song List */
@@ -222,12 +258,12 @@ body {
   background: var(--lp-dark-surface-1);
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
-.song-card:hover, .song-card:active {
+.song-card:active {
   background: var(--lp-dark-surface-2);
-  border-color: var(--lp-dark-divider);
+  transform: scale(0.98);
 }
 
 .song-card.active {
@@ -238,7 +274,7 @@ body {
 .song-thumb {
   width: 52px;
   height: 52px;
-  border-radius: 10px;
+  border-radius: 12px;
   object-fit: cover;
   flex-shrink: 0;
   background: var(--lp-dark-surface-3);
@@ -275,7 +311,7 @@ body {
 /* MiniPlayer */
 .mini-player {
   position: fixed;
-  bottom: 12px;
+  bottom: max(14px, env(safe-area-inset-bottom));
   left: 12px;
   right: 12px;
   max-width: 780px;
@@ -287,10 +323,10 @@ body {
   align-items: center;
   padding: 8px 14px;
   gap: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
   z-index: 1000;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: transform 0.15s ease;
 }
 
 .mini-player:active {
@@ -300,7 +336,7 @@ body {
 .mini-thumb {
   width: 44px;
   height: 44px;
-  border-radius: 8px;
+  border-radius: 10px;
   object-fit: cover;
   background: var(--lp-dark-surface-3);
 }
@@ -339,7 +375,7 @@ body {
   border: none;
   color: var(--lp-text-primary);
   cursor: pointer;
-  padding: 6px;
+  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -353,11 +389,11 @@ body {
 .full-player {
   position: fixed;
   inset: 0;
-  background: linear-gradient(180deg, rgba(179, 21, 43, 0.7) 0%, #1A1210 40%, #0D0907 100%);
+  background: linear-gradient(180deg, rgba(179, 21, 43, 0.75) 0%, #1A1210 35%, #0D0907 100%);
   z-index: 2000;
   display: flex;
   flex-direction: column;
-  padding: 24px;
+  padding: max(20px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom)) 24px;
   transform: translateY(100%);
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   overflow-y: auto;
@@ -381,13 +417,13 @@ body {
 }
 
 .full-cover {
-  width: 280px;
-  height: 280px;
-  max-width: 80vw;
-  max-height: 80vw;
-  border-radius: 20px;
+  width: 290px;
+  height: 290px;
+  max-width: 78vw;
+  max-height: 78vw;
+  border-radius: 22px;
   object-fit: cover;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.75);
 }
 
 .full-metadata {
@@ -433,12 +469,12 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 28px;
+  gap: 32px;
 }
 
 .btn-play-large {
-  width: 70px;
-  height: 70px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--lp-gold-light) 0%, var(--lp-gold) 100%);
   color: var(--lp-dark-bg);
@@ -452,7 +488,7 @@ body {
 }
 
 .btn-play-large:active {
-  transform: scale(0.94);
+  transform: scale(0.93);
 }
 
 /* Lyrics Modal / View */

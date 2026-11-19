@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Los Primos Music</title>
+  <title>Los Primos</title>
   
   <!-- PWA & Apple Web App Meta Tags -->
   <link rel="manifest" href="/manifest.json">
@@ -18,6 +18,12 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+
+  <!-- Banner de Dica para o iOS -->
+  <div class="ios-install-banner" id="iosBanner">
+    <span>💡 Dica: Toque em <strong>Compartilhar ⎋</strong> e <strong>"Adicionar à Tela de Início"</strong> para usar como App sem instalar!</span>
+    <button class="close-banner" onclick="document.getElementById('iosBanner').style.display='none'">×</button>
+  </div>
 
   <!-- Top Header com Logo -->
   <header class="app-header">
